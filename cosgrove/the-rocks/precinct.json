@@ -1,0 +1,178 @@
+{
+    "id": "THE_ROCKS",
+    "label": "The Rocks",
+    "title": "The Rocks Village",
+    "blurb": "a private community nestled alongside natural bushland and wildlife corridors and framed by the stunning backdrop of Mount Louisa’s high rock formations. The first of seven villages in Cosgrove’s masterplan, The Rocks is perfect for families looking to balance a great lifestyle with connected living. Just 10 minutes from the CBD, you’ll love the convenience of parks, BBQ areas, a thriving community and transport networks, all within easy reach.",
+    "plan": "cosgrove/the-rocks/precinct.svg",
+    "maxWidth": 835,
+    "stages": [
+        { 
+            "id": "STAGE105",
+            "label": "Stage 105",
+            "totalLots": 19,
+            "availableLots": [
+                {
+                    "id": "119",
+                    "area": 740,
+                    "frontage": 32.0,
+                    "remarks": "Drainage easement"
+                },
+                {
+                    "id": "131",
+                    "area": 429,
+                    "frontage": 21.0
+                }
+            ]
+        },
+        {
+            "id": "STAGE201",
+            "label": "Stage 201",
+            "totalLots": 18,
+            "availableLots": [
+                {
+                    "id": "168",
+                    "area": 480,
+                    "frontage": 32.0
+                }, 
+                {
+                    "id": "170",
+                    "area": 581,
+                    "frontage": 8.9
+                }, 
+                {
+                    "id": "173",
+                    "area": 400,
+                    "frontage": 12.5
+                },
+                {
+                    "id": "177",
+                    "area": 602,
+                    "frontage": 27.7
+                }
+            ]
+        },
+        { "id": "STAGE202",
+            "label": "Stage 202",
+            "totalLots": 19,
+            "availableLots": [
+                {
+                    "id": "186",
+                    "area": 300,
+                    "frontage": 15.0
+                },
+                {
+                    "id": "187",
+                    "area": 300,
+                    "frontage": 15.0
+                }
+            ]
+        },
+        { "id": "STAGE203",
+            "label": "Stage 203",
+            "totalLots": 30,
+            "availableLots": [
+                {
+                    "id": "198",
+                    "area": 600,
+                    "frontage": 25.7
+                }, 
+                {
+                    "id": "204",
+                    "area": 300,
+                    "frontage": 20.0
+                }, 
+                {
+                    "id": "205",
+                    "area": 300,
+                    "frontage": 15.0
+                }, 
+                {
+                    "id": "185",
+                    "area": 300,
+                    "frontage": 15.0
+                }, 
+                {
+                    "id": "184",
+                    "area": 300,
+                    "frontage": 15.0
+                }
+            ]
+        },
+        { "id": "STAGE204",
+            "label": "Stage 204",
+            "totalLots": 29,
+            "availableLots": [
+                {
+                    "id": "206",
+                    "area": 300,
+                    "frontage": 15.0
+                }, 
+                {
+                    "id": "207",
+                    "area": 300,
+                    "frontage": 20.0
+                }, 
+                {
+                    "id": "228",
+                    "area": 350,
+                    "frontage": 12.5
+                },
+                { 
+                    "id": "227",
+                    "area": 350,
+                    "frontage": 12.5
+                }, 
+                {
+                    "id": "222",
+                    "area": 569,
+                    "frontage": 18.6
+                }, 
+                {
+                    "id": "232",
+                    "area": 623,
+                    "frontage": 12.5
+                }, 
+                {
+                    "id": "233",
+                    "area": 512,
+                    "frontage": 16.0
+                }, 
+                {
+                    "id": "234",
+                    "area": 320,
+                    "frontage": 10.0
+                }, 
+                {
+                    "id": "235",
+                    "area": 320,
+                    "frontage": 10.0
+                }, 
+                {
+                    "id": "236",
+                    "area": 320,
+                    "frontage": 10.0
+                }, 
+                {
+                    "id": "238",
+                    "area": 448,
+                    "frontage": 14.0
+                }, 
+                {
+                    "id": "244",
+                    "area": 608,
+                    "frontage": 19.0
+                }, 
+                {
+                    "id": "218",
+                    "area": 704,
+                    "frontage": 22.0
+                }, 
+                {
+                    "id": "220",
+                    "area": 704,
+                    "frontage": 22.0
+                }
+            ]
+        }
+    ]
+}
