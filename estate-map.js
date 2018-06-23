@@ -15,14 +15,18 @@
         // get the container element (we only expect one)
         var $container = $(this.get(0));
 
-        // add our wrapper to the container
+        // add our wrappers to the container
         $container.empty();
-        $wrapper = $("<div />")
-            .attr(opts.wrapperAttrs)
+        var $mapWrapper = $("<div />")
+            .attr(opts.mapWrapperAttrs)
             .appendTo($container);
-        $svg = null;
+        var $listWrapper = $("<div />")
+            .attr(opts.listWrapperAttrs)
+            .appendTo($container);
 
-        function load()
+        var $svg = null;
+
+        function loadData()
         {
             if (opts.json) {
                 var url = opts.json + "?t=" + (new Date().getTime());    // append timestamp to avoid caching
@@ -43,7 +47,7 @@
         function loadMap(curr)
         {
             data.curr = curr;
-            $wrapper.load(curr.plan, null, function (responseText, textStatus, req) {
+            $mapWrapper.load(curr.plan, null, function (responseText, textStatus, req) {
                 if (textStatus == "error") {
                     console.log("Failed to load " + curr.plan + ": " + errorThrown);
                     opts.error.call(this, [responseText, textStatus, req]);
@@ -65,7 +69,7 @@
         function onMapLoaded(responseText, textStatus, req)
         {
             // grab the SVG document
-            $svg = $wrapper.find("svg");
+            $svg = $mapWrapper.find("svg");
 
             // enforce maximum width
             var width = $svg.attr("width");
@@ -84,8 +88,8 @@
             }
 
             // resize the wrapper div
-            $wrapper.width(width);
-            $wrapper.height(height);
+            $mapWrapper.width(width);
+            $mapWrapper.height(height);
 
             // make the stage paths look clickable
             var $paths = $svg.find("path");
@@ -120,14 +124,45 @@
         function onStageMouseEnter(e)
         {
             var $lot = $(e.target);
-            var $data = $lot.data("lotinfo");
-            $lot.css("fill-opacity", "1");
+            highlightLot($lot, true);
         }
         function onStageMouseLeave(e)
         {
             var $lot = $(e.target);
+            highlightLot($lot, false);
+        }
+        function onStageButtonMouseEnter(e)
+        {
+            var $btn = $(e.target).closest(".card");
+            var $data = $btn.data("lotinfo");
+            var $lot = $("#"+$data.id);
+            highlightLot($lot, true);
+        }
+        function onStageButtonMouseLeave(e)
+        {
+            var $btn = $(e.target).closest(".card");
+            var $data = $btn.data("lotinfo");
+            var $lot = $("#"+$data.id);
+            highlightLot($lot, false);
+        }
+        function highlightLot($lot, highlight)
+        {
             var $data = $lot.data("lotinfo");
-            $lot.css("fill-opacity", "0");
+            var $btn = $("#"+$data.id+"_BUTTON");
+            if (highlight) {
+                $lot.css("fill-opacity", "1");
+                $btn.addClass("highlight");
+            } else {
+                $lot.css("fill-opacity", "0");
+                $btn.removeClass("highlight");
+            }
+        }
+
+        function stageListItem(value) {
+            var available = value.availableLots.length;
+            var item = $("<div class='card' id='"+value.id+"_BUTTON"+"'><div class='card-body'><h5 class='card-title'>"+value.label+"</h5><span>"+available+ " lots available"+"</span></div></div>");
+            
+            return item;
         }
         
         function applyStageAvailability(data) {
@@ -135,8 +170,8 @@
             // we will re-enable them on block shapes later.
             $svg.find("*").css("pointer-events", "none");
             
+            $listWrapper.empty();
             $.each(data, function (index, value) {
-
                 var location = value.id;
                 var $lot = $("#"+location);
                 var $badge = $("#"+location+"_BADGE");
@@ -172,11 +207,17 @@
                     
                     // install mouse enter/leave handlers to highlight the stage on hover
                     $lot.hover(onStageMouseEnter, onStageMouseLeave);
+
+                    // now add a new list item for the stage
+                    $listItem = stageListItem(value);
+                    $listItem.data("lotinfo", value);
+                    $listWrapper.append($listItem);
+                    $listItem.hover(onStageButtonMouseEnter, onStageButtonMouseLeave);
                 }
             });
         }
 
-        load();
+        loadData();
      
         return this;
     };
@@ -187,8 +228,11 @@
         json: "data.json",
 
         // attributes for the wrapper DIV
-        wrapperAttrs: {
-            class: "estate-map-wrapper"
+        mapWrapperAttrs: {
+            class: "landsales landsales-map"
+        },
+        listWrapperAttrs: {
+            class: "landsales landsales-list"
         },
 
         // callbacks

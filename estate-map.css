@@ -1,3 +1,19 @@
-.estate-map {
-    
+.landsales-map, .landsales-list {
+    float: left;
+}
+.landsales-list {
+    width: 300px;
+}
+
+.landsales-list .card {
+    margin: 10px;
+}
+.landsales-list .card-body {
+    padding: 4px 12px;
+}
+.landsales-list .card-title {
+    margin-bottom: 0;
+}
+.landsales-list .card.highlight {
+    background-color: #95afc0;
 }
