@@ -26,28 +26,56 @@
 
         var $svg = null;
 
+        function appendTimestampToQueryString(url)
+        {
+            var ts = (new Date().getTime());
+            if (url.indexOf("?") > 0) {
+                url += "&ts=" + ts;
+            }
+            else {
+                url += "?ts=" + ts;
+            }
+
+            return url;
+        }
+
         function loadData()
         {
+            var resources = [];
             if (opts.json) {
-                var url = opts.json + "?t=" + (new Date().getTime());    // append timestamp to avoid caching
-                $.getJSON(url)
-                    .done(function (responseText, textStatus, jqXHR) {
+                resources.push(
+                    $.getJSON(appendTimestampToQueryString(opts.json)).done(function (responseText, textStatus, jqXHR) {
                         console.log("Loaded estate data from " + opts.json);
                         data.estate = responseText;
-
-                        onDataLoaded();
                     })
-                    .fail(function (responseText, textStatus, errorThrown) {
-                        console.log("Failed to load " + opts.json + ": " + errorThrown);
-                        opts.error.call(this, [responseText, textStatus, errorThrown]);
-                    });
+                );
             }
+            data.templates = {
+                "stageItem": { url: "templates/stage-item.html" }
+            };
+            var templates = [];
+            $.each(data.templates, function(name, el) {
+                templates.push(
+                    $.get(appendTimestampToQueryString(el.url)).done(function (responseText, textStatus, jqXHR) {
+                        console.log("Loaded template " + name + " from " + el.url);
+                        el.template = Handlebars.compile(responseText);
+                    })
+                );
+            });
+            resources = resources.concat(templates);
+
+            // wait for all resources to load before calling onDataLoaded
+            $.when.apply(resources, resources)
+                .done(function() {
+                    console.log("All resources loaded");
+                    onDataLoaded();
+                });
         }
 
         function loadMap(curr)
         {
             data.curr = curr;
-            $mapWrapper.load(curr.plan, null, function (responseText, textStatus, req) {
+            $mapWrapper.load(appendTimestampToQueryString(curr.plan), null, function (responseText, textStatus, req) {
                 if (textStatus == "error") {
                     console.log("Failed to load " + curr.plan + ": " + errorThrown);
                     opts.error.call(this, [responseText, textStatus, req]);
@@ -148,7 +176,7 @@
         function highlightLot($lot, highlight)
         {
             var $data = $lot.data("lotinfo");
-            var $btn = $("#"+$data.id+"_BUTTON");
+            var $btn = $("#"+$data.id+"_CARD");
             if (highlight) {
                 $lot.css("fill-opacity", "1");
                 $btn.addClass("highlight");
@@ -158,11 +186,11 @@
             }
         }
 
-        function stageListItem(value) {
-            var available = value.availableLots.length;
-            var item = $("<div class='card' id='"+value.id+"_BUTTON"+"'><div class='card-body'><h5 class='card-title'>"+value.label+"</h5><span>"+available+ " lots available"+"</span></div></div>");
-            
-            return item;
+        function stageListItem(stage) {
+            var context = { "id": stage.id, "title": stage.label, "available": stage.availableLots.length };
+            var html = data.templates.stageItem.template(context);
+
+            return $(html);
         }
         
         function applyStageAvailability(data) {
