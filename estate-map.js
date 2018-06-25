@@ -115,9 +115,10 @@
                 $svg.attr("height", height);
             }
 
-            // resize the wrapper div
+            // resize the wrapper divs
             $mapWrapper.width(width);
             $mapWrapper.height(height);
+            $listWrapper.height(height);
 
             // make the stage paths look clickable
             var $paths = $svg.find("path");

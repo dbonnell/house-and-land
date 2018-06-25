@@ -3,6 +3,7 @@
 }
 .landsales-list {
     width: 300px;
+    background-color: #333;
 }
 
 .landsales-list .card {
@@ -15,5 +16,5 @@
     margin-bottom: 0;
 }
 .landsales-list .card.highlight {
-    background-color: #95afc0;
+    background-color: #e67e22;
 }
