@@ -17,12 +17,29 @@
 
         // add our wrappers to the container
         $container.empty();
-        var $mapWrapper = $("<div />")
-            .attr(opts.mapWrapperAttrs)
-            .appendTo($container);
-        var $listWrapper = $("<div />")
-            .attr(opts.listWrapperAttrs)
-            .appendTo($container);
+        $container.addClass("landsales");
+
+        // variables that will hold the map and list wrappers once they
+        // are created by
+        var $mapWrapper;
+        var $listWrapper;
+
+        /*
+        var $mapWrapper = $("<div />").attr(opts.mapWrapperAttrs);
+        var $listWrapper = $("<div>").attr(opts.listWrapperAttrs);
+        if (data.prev == undefined) {
+            $listWrapper.appendTo($container);
+            $mapWrapper.appendTo($container);
+
+            $listWrapper.removeClass("landsales-lot").addClass("landsales-stage");
+        }
+        else {
+            $mapWrapper.appendTo($container);
+            $listWrapper.appendTo($container);
+
+            $listWrapper.removeClass("landsales-stage").addClass("landsales-lot");
+        }
+        */
 
         var $svg = null;
 
@@ -51,6 +68,8 @@
                 );
             }
             data.templates = {
+                "estateView": { url: "templates/estate-view.html" },
+                "stageView": { url: "templates/stage-view.html" },
                 "stageItem": { url: "templates/stage-item.html" }
             };
             var templates = [];
@@ -72,9 +91,34 @@
                 });
         }
 
-        function loadMap(curr)
+        function onDataLoaded()
         {
+            if (!data.curr) {
+                data.curr = data.estate;
+            }
+            loadMap(data.curr, undefined);
+        }
+
+        function loadMap(curr, prev)
+        {
+            if (curr["stages"] == undefined) {
+                // curr is estate
+                prev = undefined;
+            }
+
+            data.prev = prev;
             data.curr = curr;
+
+            var $view;
+            if (prev == undefined) {
+                $view = estateView(curr);
+            } else {
+                $view = stageView(curr);
+            }
+            $container.empty().append($view);
+            $mapWrapper = $container.find(".landsales-map");
+            $listWrapper = $container.find(".landsales-list");
+
             $mapWrapper.load(appendTimestampToQueryString(curr.plan), null, function (responseText, textStatus, req) {
                 if (textStatus == "error") {
                     console.log("Failed to load " + curr.plan + ": " + errorThrown);
@@ -84,14 +128,6 @@
                     onMapLoaded();
                 }
             });
-        }
-
-        function onDataLoaded()
-        {
-            if (!data.curr) {
-                data.curr = data.estate;
-            }
-            loadMap(data.curr);
         }
 
         function onMapLoaded(responseText, textStatus, req)
@@ -118,7 +154,11 @@
             // resize the wrapper divs
             $mapWrapper.width(width);
             $mapWrapper.height(height);
-            $listWrapper.height(height);
+            if (data.prev == undefined) {
+                $listWrapper.width(width-30);   // -30px to offset 15+15 margins of .fluid-container
+            } else {
+                $listWrapper.height(height);
+            }
 
             // make the stage paths look clickable
             var $paths = $svg.find("path");
@@ -187,6 +227,20 @@
             }
         }
 
+        function estateView(context)
+        {
+            var html = data.templates.estateView.template(context);
+
+            return $(html);
+        }
+
+        function stageView(context)
+        {
+            var html = data.templates.stageView.template(context);
+
+            return $(html);
+        }
+
         function stageListItem(stage) {
             var context = { "id": stage.id, "title": stage.label, "available": stage.availableLots.length };
             var html = data.templates.stageItem.template(context);
@@ -200,6 +254,7 @@
             $svg.find("*").css("pointer-events", "none");
             
             $listWrapper.empty();
+            $listRow = $("<div />").addClass("row").appendTo($listWrapper);
             $.each(data, function (index, value) {
                 var location = value.id;
                 var $lot = $("#"+location);
@@ -240,7 +295,7 @@
                     // now add a new list item for the stage
                     $listItem = stageListItem(value);
                     $listItem.data("lotinfo", value);
-                    $listWrapper.append($listItem);
+                    $listRow.append($listItem);
                     $listItem.hover(onStageButtonMouseEnter, onStageButtonMouseLeave);
                 }
             });
@@ -258,10 +313,10 @@
 
         // attributes for the wrapper DIV
         mapWrapperAttrs: {
-            class: "landsales landsales-map"
+            class: "landsales-map"
         },
         listWrapperAttrs: {
-            class: "landsales landsales-list"
+            class: "landsales-list container-fluid"
         },
 
         // callbacks
