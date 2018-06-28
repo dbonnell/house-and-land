@@ -8,8 +8,7 @@
         // plugin data
         var data = $.extend({}, {
             estate: null,  // all data loaded from opts.json URL
-            curr: null, // current data node
-            prev: null  // previous data node 
+            crumbs: [], // navgiation crumbs
         });
 
         // get the container element (we only expect one)
@@ -93,44 +92,79 @@
 
         function onDataLoaded()
         {
-            if (!data.curr) {
-                data.curr = data.estate;
-            }
-            loadMap(data.curr, undefined);
+            loadMap(data.estate);
+
+            // uncomment the 2 lines below to test loading of first stage on startup
+            /*
+            data.crumbs.push(data.estate);
+            loadMap(data.estate.stages[0]);
+            */
         }
 
-        function loadMap(curr, prev)
+        function current() {
+            var curr = undefined;
+            
+            if (data.crumbs && data.crumbs.length >= 1)
+                curr = data.crumbs[data.crumbs.length - 1];
+
+            return curr;
+        }
+
+        function isEstate() {
+            return current().hasOwnProperty("stages");
+        }
+        function isStage() {
+            return current().hasOwnProperty("availableLots");
+        }
+        function isLot() {
+            return (!isEstate() && !isStage());
+        }
+
+        function loadMap(map)
         {
-            if (curr["stages"] == undefined) {
-                // curr is estate
-                prev = undefined;
-            }
-
-            data.prev = prev;
-            data.curr = curr;
-
-            var $view;
-            if (prev == undefined) {
-                $view = estateView(curr);
+            if (!map) {
+                // go back to previous breadcrumb
+                data.crumbs.pop();  // pop current
+                map = current();    // set top as current
             } else {
-                $view = stageView(curr);
+                data.crumbs.push(map);
             }
-            $container.empty().append($view);
-            $mapWrapper = $container.find(".landsales-map");
-            $listWrapper = $container.find(".landsales-list");
+            console.log("Changing to " + map.label + " [" + map.id + "]");
 
-            $mapWrapper.load(appendTimestampToQueryString(curr.plan), null, function (responseText, textStatus, req) {
+            // load the estate or stage view into $container
+            var $view;
+            if (isEstate()) {
+                console.log("Setting view to ESTATE");
+                $view = estateView(map);
+            } else if (isStage()) {
+                console.log("Setting view to STAGE");
+                $view = stageView(map);
+            }
+            else {
+                console.log("Setting view to LOT");
+                $view = lotView(map);
+            }
+            //$container.empty().append($view);
+            $mapWrapper = $view.find(".landsales-map");
+            $listWrapper = $view.find(".landsales-list");
+
+            // attach click handler to "back to masterplan" nav button
+            if (isStage()) {
+                $view.find("#stage-nav").click( function () { loadMap(); } );
+            }
+
+            $mapWrapper.load(appendTimestampToQueryString(map.plan), null, function (responseText, textStatus, req) {
                 if (textStatus == "error") {
-                    console.log("Failed to load " + curr.plan + ": " + errorThrown);
+                    console.log("Failed to load " + map.plan + ": " + errorThrown);
                     opts.error.call(this, [responseText, textStatus, req]);
                 } else {
-                    console.log("Loaded map for " + curr.id + " from " + curr.plan);
-                    onMapLoaded();
+                    console.log("Loaded map for " + map.id + " from " + map.plan);
+                    onMapLoaded($view);
                 }
             });
         }
 
-        function onMapLoaded(responseText, textStatus, req)
+        function onMapLoaded($view)
         {
             // grab the SVG document
             $svg = $mapWrapper.find("svg");
@@ -138,7 +172,10 @@
             // enforce maximum width
             var width = $svg.attr("width");
             var height = $svg.attr("height");
-            var maxWidth = data.curr.maxWidth;
+            if (width.indexOf("mm") >= 0) {
+                console.log("OOPS!  SVG width/height are in mm.  Please set Document Properties/Custom Size units to px");
+            }
+            var maxWidth = current().maxWidth;
             if (maxWidth != undefined && maxWidth > 0 && width > maxWidth) {
                 // preserve aspect ratio on resize
                 if ($svg.attr("preserveAspectRatio") == undefined) {
@@ -169,12 +206,21 @@
             $texts.css({ "pointer-events": "none" });
 
             // apply stage availability data to the map
-            if (data.curr.stages) {
-                applyStageAvailability(data.curr.stages);
+            if ( isEstate() ) {
+                applyStageAvailability($view, current().stages);
+            }
+            else if ( isStage() ) {
+                // TODO: handle stage view
             }
             else {
-                // TODO: handle data.curr being a stage
+                // TODO: handle lot view
             }
+
+            // ok, everything is ready, now lets switch to the new view
+            $container.fadeOut(200, function() {
+                $container.empty().append($view);
+                $container.fadeIn(200);
+            });
 
             opts.loaded.call(this);
         }
@@ -248,7 +294,7 @@
             return $(html);
         }
         
-        function applyStageAvailability(data) {
+        function applyStageAvailability($view, data) {
             // disable pointer events on all SVG elements to prevent interference with tooltips.
             // we will re-enable them on block shapes later.
             $svg.find("*").css("pointer-events", "none");
@@ -257,8 +303,8 @@
             $listRow = $("<div />").addClass("row").appendTo($listWrapper);
             $.each(data, function (index, value) {
                 var location = value.id;
-                var $lot = $("#"+location);
-                var $badge = $("#"+location+"_BADGE");
+                var $lot = $view.find("#"+location);
+                var $badge = $view.find("#"+location+"_BADGE");
                 
                 // re-enable pointer events for tooltip processing
                 $lot.css("pointer-events", "visible");
@@ -297,6 +343,9 @@
                     $listItem.data("lotinfo", value);
                     $listRow.append($listItem);
                     $listItem.hover(onStageButtonMouseEnter, onStageButtonMouseLeave);
+
+                    // add click handler to navigate to the stage view
+                    $listItem.click(function () { loadMap(value); });
                 }
             });
         }

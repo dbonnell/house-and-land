@@ -9,6 +9,8 @@
         { 
             "id": "STAGE105",
             "label": "Stage 105",
+            "plan": "cosgrove/the-rocks/Stage105.svg",
+            "maxWidth": 700,
             "totalLots": 19,
             "availableLots": [
                 {
@@ -27,6 +29,7 @@
         {
             "id": "STAGE201",
             "label": "Stage 201",
+            "plan": "cosgrove/the-rocks/Stage201.svg",
             "totalLots": 18,
             "availableLots": [
                 {
@@ -54,6 +57,7 @@
         { "id": "STAGE202",
             "label": "Stage 202",
             "totalLots": 19,
+            "plan": "cosgrove/the-rocks/Stage202.svg",
             "availableLots": [
                 {
                     "id": "186",
@@ -69,6 +73,7 @@
         },
         { "id": "STAGE203",
             "label": "Stage 203",
+            "plan": "cosgrove/the-rocks/Stage203.svg",
             "totalLots": 30,
             "availableLots": [
                 {
@@ -100,6 +105,7 @@
         },
         { "id": "STAGE204",
             "label": "Stage 204",
+            "plan": "cosgrove/the-rocks/Stage204.svg",
             "totalLots": 29,
             "availableLots": [
                 {
