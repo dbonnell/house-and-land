@@ -345,6 +345,7 @@
                     $listItem.hover(onStageButtonMouseEnter, onStageButtonMouseLeave);
 
                     // add click handler to navigate to the stage view
+                    $lot.click(function () { loadMap(value); });
                     $listItem.click(function () { loadMap(value); });
                 }
             });
