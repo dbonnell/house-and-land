@@ -5,12 +5,13 @@
     "blurb": "a private community nestled alongside natural bushland and wildlife corridors and framed by the stunning backdrop of Mount Louisa’s high rock formations. The first of seven villages in Cosgrove’s masterplan, The Rocks is perfect for families looking to balance a great lifestyle with connected living. Just 10 minutes from the CBD, you’ll love the convenience of parks, BBQ areas, a thriving community and transport networks, all within easy reach.",
     "plan": "cosgrove/the-rocks/precinct.svg",
     "maxWidth": 835,
+    "maxStageWidth": 700,
+    "maxLotWidth": 700,
     "stages": [
         { 
             "id": "STAGE105",
             "label": "Stage 105",
             "plan": "cosgrove/the-rocks/Stage105.svg",
-            "maxWidth": 700,
             "totalLots": 19,
             "availableLots": [
                 {

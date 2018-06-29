@@ -9,6 +9,9 @@
     -webkit-transition: background-color .4s;
     transition: background-color .4s;
 }
+.landsales-list .lot-detail.card {
+    cursor: inherit;
+}
 .landsales-list .card.highlight {
     background-color: #2c3e50;
     color: #ffd400;
@@ -23,40 +26,49 @@
 .landsales-list .card-title {
     margin-bottom: 0;
 }
+.lot-detail.card {
+    background-color: #e5e5e5;
+    border: none;
+    border-radius: 0;
+}
+.lot-detail .card-title {
+    font-size: 2em;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+}
 .landsales-list.landsales-stage .card-body {
     padding: 4px 0;
 }
-/* stage view */
-.landsales-stage {
+.landsales-view {
     margin-top: 4px;
     margin-left: 4px;
 }
 .landsales-stage .landsales-list {
     width: 500px;
 }
-.stage-nav, .stage-legend {
+.landsales-nav, .stage-legend {
     margin-bottom: 8px;
 }
-.stage-nav {
+.landsales-nav {
     cursor: pointer;
 }
-.stage-nav .card-body, .stage-legend .card-body {
+.landsales-nav .card-body, .stage-legend .card-body {
     padding: 5px;
     height: 40px;
 }
-.stage-nav .card-body {
+.landsales-nav .card-body {
     font-size: 1.25em;
     -webkit-transition: color .4s;
     transition: color .4s;
     background-color: #2c3e50;
 }
-.stage-nav .card-body:hover {
+.landsales-nav .card-body:hover {
     color: #ffd400;
 }
 .stage-legend .card-body {
     background-color: #e5e5e5;
 }
-.stage-nav-container {
+.landsales-nav-container {
     margin-right: 8px;
     width: 500px;
 }

@@ -55,9 +55,11 @@
             // we will load and compile them all upfront to avoid any delays later
             data.templates = {
                 "estateView": { url: "templates/estate-view.html" },
-                "stageView": { url: "templates/stage-view.html" },
                 "stageItem": { url: "templates/stage-item.html" },
-                "lotItem": { url: "templates/lot-item.html" }
+                "stageView": { url: "templates/stage-view.html" },
+                "lotItem": { url: "templates/lot-item.html" },
+                "lotView": { url: "templates/lot-view.html" },
+                "lotDetail": { url: "templates/lot-detail.html" }
             };
             var templates = [];
             $.each(data.templates, function(name, el) {
@@ -80,25 +82,44 @@
 
         function onDataLoaded()
         {
-            loadMap(data.estate);
+            // where to start
+            // this should ordinarily be "ESTATE" to start at the estate view.  for testing, set it to STAGE or LO,
+            // to jump straight to the first stage or first lot of first stage, respectively
+            var startAt = "ESTATE";
+            //var startAt = "LOT";
 
-            // uncomment the 2 lines below to test loading of first stage on startup
-            /*
-            data.crumbs.push(data.estate);
-            loadMap(data.estate.stages[0]);
-            */
+            if (startAt == "ESTATE") {
+                loadMap(data.estate);
+            } else if (startAt == "STAGE") {
+                data.crumbs.push(data.estate);
+                loadMap(data.estate.stages[0]);
+            } else { // LOT
+                data.crumbs.push(data.estate);
+                data.crumbs.push(data.estate.stages[0]);
+                loadMap(data.estate.stages[0].availableLots[0]);
+            }
             
         }
         //#endregion
 
         //#region data navigation
         function current() {
-            var curr = undefined;
+            var curr;
             
-            if (data.crumbs && data.crumbs.length >= 1)
+            if (data.crumbs && data.crumbs.length > 0) {
                 curr = data.crumbs[data.crumbs.length - 1];
+            }
 
             return curr;
+        }
+        function previous() {
+            var prev;
+
+            if (data.crumbs && data.crumbs.length > 1) {
+                prev = data.crumbs[data.crumbs.length - 2];
+            }
+
+            return prev;
         }
 
         function isEstate() {
@@ -120,11 +141,6 @@
                 data.crumbs.pop();  // pop current
                 map = current();    // set top as current
             } else {
-                if (!map.hasOwnProperty("plan")) {
-                    // doesn't have a plan yet, ignore navigation request
-                    console.log("Ignoring request to load " + map.id + " as it does not have a plan");
-                    return;
-                }
                 data.crumbs.push(map);
             }
             console.log("Changing to " + map.label + " [" + map.id + "]");
@@ -146,19 +162,20 @@
             $mapWrapper = $view.find(".landsales-map");
             $listWrapper = $view.find(".landsales-list");
 
-            // attach click handler to "back to masterplan" nav button
-            if (isStage()) {
-                $view.find("#stage-nav").click( function () { loadMap(); } );
+            // attach click handler to "back" button (stage and lot views)
+            if ( !isEstate() ) {
+                $view.find("#landsales-nav").click( function () { loadMap(); } );
             }
 
-            $mapWrapper.load(appendTimestampToQueryString(map.plan), null, function (responseText, textStatus, req) {
+            var plan = (map.hasOwnProperty("plan") ? map.plan : previous().plan);
+            $mapWrapper.load(appendTimestampToQueryString(plan), null, function (responseText, textStatus, req) {
                 if (textStatus == "error") {
                     var errorThrown = "HTTP " + req.status + " " + req.statusText;
-                    console.log("Failed to load " + map.plan + ": " + errorThrown);
+                    console.log("Failed to load " + plan + ": " + errorThrown);
                     loadMap();  // couldn't load this one so return to previous map
                     opts.error.call(this, [responseText, textStatus, req]);
                 } else {
-                    console.log("Loaded map for " + map.id + " from " + map.plan);
+                    console.log("Loaded map for " + map.id + " from " + plan);
                     onMapLoaded($view);
                 }
             });
@@ -176,6 +193,17 @@
                 console.log("OOPS!  SVG width/height are in mm.  Please set Document Properties/Custom Size units to px");
             }
             var maxWidth = current().maxWidth;
+            if (maxWidth == undefined) {
+                if (isLot()) {
+                    maxWidth = data.estate.maxLotWidth;
+                } else if (isStage()) {
+                    maxWidth = data.estate.maxStageWidth;
+                }
+                else {
+                    maxWidth = data.estate.maxWidth;
+                }
+            }
+
             if (maxWidth != undefined && maxWidth > 0 && width > maxWidth) {
                 // preserve aspect ratio on resize
                 if ($svg.attr("preserveAspectRatio") == undefined) {
@@ -293,15 +321,24 @@
         //#endregion
 
         //#region view instantiation
-        function estateView(context)
+        function estateView(estate)
         {
+            var context = $.extend({}, estate);
             var html = data.templates.estateView.template(context);
 
             return $(html);
         }
-        function stageView(context)
+        function stageView(stage)
         {
+            var context = $.extend({}, stage, { "previous": "Masterplan" });
             var html = data.templates.stageView.template(context);
+
+            return $(html);
+        }
+        function lotView(lot)
+        {
+            var context = $.extend({}, lot, { "previous": previous().label });
+            var html = data.templates.lotView.template(context);
 
             return $(html);
         }
@@ -314,6 +351,12 @@
         function lotListItem(lot) {
             var context = $.extend({}, lot, {});
             var html = data.templates.lotItem.template(context);
+
+            return $(html);
+        }
+        function lotDetail(lot) {
+            var context = $.extend({}, lot, {});
+            var html = data.templates.lotDetail.template(context);
 
             return $(html);
         }
@@ -378,6 +421,25 @@
             });
         }
 
+        function hideAllLots() {
+            $svg.find("g[id^='layer']").each(function (i, g) {
+                var label = $(g).attr("inkscape:label");
+                if (label == "Lots" || label == "Stages" || label == "Masks") {
+                   $(g).find("path").each(function (j, p) {
+                        $(p).css("fill-opacity", "0");
+                   });
+                }
+            });
+        }
+
+        function hideBadgesOfAvailableLots() {
+            var stage = isStage() ? current() : previous();
+            $.each(stage.availableLots, function (index, lot) {
+                var $badge = $mapWrapper.find("#"+lot.id+"_BADGE");
+                $badge.css("display", "none");    
+            });
+        }
+
         function applyLotAvailability($view) {
             // disable pointer events on all SVG elements to prevent interference with tooltips.
             // we will re-enable them on block shapes later.
@@ -388,6 +450,12 @@
 
             var stage = current();
 
+            // make the masks for all lots transparent
+            hideAllLots();
+
+            // hide badges of available lots
+            hideBadgesOfAvailableLots();
+
             // badges for all lots in the SVG are initially sold
             
             // for each available lots:
@@ -396,9 +464,6 @@
             $.each(stage.availableLots, function (index, lot) {
                 var location = lot.id;    // e.g LOT119
                 var $lot = $view.find("#"+location);
-                var $badge = $view.find("#"+location+"_BADGE");     // group with cover rect + status circle (fill=#000, opacity=0.5)
-                var $status = $view.find("#"+location+"_STATUS");   // status circle (fill=ref, opacity=1.0)
-                
 
                 // if we have a rect defined for this code then update it
                 if ($lot.length == 1) {
@@ -406,13 +471,6 @@
                     $lot.data("landsales_data", lot);
                     
                     console.log(location + " is available");
-                    
-                    // make the lot mask transparent until the user hovers over the lot
-                    $lot.css("fill-opacity", "0");
-
-                    // hide the badge as this lot is available
-                    $badge.css("display", "none");
-                    
 
                     // now add a new list item for the stage
                     $listItem = lotListItem(lot);
@@ -425,7 +483,6 @@
                     $listItem.hover(onLotButtonMouseEnter, onLotButtonMouseLeave);
 
                     // add click handlers to navigate to the lot view
-                    // TODO
                     $lot.click(function () { loadMap(lot); });
                     $listItem.click(function () { loadMap(lot); });
                 }
@@ -433,7 +490,42 @@
         }
 
         function applyLotPackages($view) {
-            // TODO
+            // disable pointer events on all SVG elements to prevent interference with tooltips.
+            // we will re-enable them on block shapes later.
+            $svg.find("*").css("pointer-events", "none");
+
+            // make the masks for all lots transparent
+            hideAllLots();
+
+            // hide badges of available lots
+            hideBadgesOfAvailableLots();
+
+            var lot = current();
+
+            var location = lot.id;    // e.g LOT119
+            var $lot = $view.find("#"+location);
+            var $badge = $view.find("#"+location+"_BADGE");     // group with cover rect + status circle (fill=#000, opacity=0.5)
+            var $status = $view.find("#"+location+"_STATUS");   // status circle (fill=ref, opacity=1.0)
+            
+
+            // if we have a rect defined for this code then update it
+            if ($lot.length == 1) {
+                // attach the data for later reference
+                $lot.data("landsales_data", lot);
+                
+                // show lot mask to highlight the lot
+                $lot.css("fill-opacity", "1");
+
+                // hide the badge as this lot is available
+                $badge.css("display", "none");
+                
+                // now add a new detail item for the lot
+                $detail = lotDetail(lot);
+                $detail.data("landsales_data", lot);
+                $listWrapper.empty();
+                $listRow = $("<div />").addClass("row").appendTo($listWrapper);
+                $listRow.append($detail);
+            }
         }
 
         loadData();
