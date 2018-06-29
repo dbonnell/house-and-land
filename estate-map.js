@@ -80,12 +80,13 @@
 
         function onDataLoaded()
         {
-            //loadMap(data.estate);
+            loadMap(data.estate);
 
             // uncomment the 2 lines below to test loading of first stage on startup
-            
+            /*
             data.crumbs.push(data.estate);
             loadMap(data.estate.stages[0]);
+            */
             
         }
         //#endregion
