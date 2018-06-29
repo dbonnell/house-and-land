@@ -14,13 +14,15 @@
             "totalLots": 19,
             "availableLots": [
                 {
-                    "id": "119",
+                    "id": "LOT119",
+                    "label": "119",
                     "area": 740,
                     "frontage": 32.0,
                     "remarks": "Drainage easement"
                 },
                 {
-                    "id": "131",
+                    "id": "LOT131",
+                    "label": "131",
                     "area": 429,
                     "frontage": 21.0
                 }
@@ -33,22 +35,26 @@
             "totalLots": 18,
             "availableLots": [
                 {
-                    "id": "168",
+                    "id": "LOT168",
+                    "label": "168",
                     "area": 480,
                     "frontage": 32.0
                 }, 
                 {
-                    "id": "170",
+                    "id": "LOT170",
+                    "label": "170",
                     "area": 581,
                     "frontage": 8.9
                 }, 
                 {
-                    "id": "173",
+                    "id": "LOT173",
+                    "label": "173",
                     "area": 400,
                     "frontage": 12.5
                 },
                 {
-                    "id": "177",
+                    "id": "LOT177",
+                    "label": "177",
                     "area": 602,
                     "frontage": 27.7
                 }
@@ -60,12 +66,14 @@
             "plan": "cosgrove/the-rocks/Stage202.svg",
             "availableLots": [
                 {
-                    "id": "186",
+                    "id": "LOT186",
+                    "label": "186",
                     "area": 300,
                     "frontage": 15.0
                 },
                 {
-                    "id": "187",
+                    "id": "LOT187",
+                    "label": "187",
                     "area": 300,
                     "frontage": 15.0
                 }
@@ -77,27 +85,32 @@
             "totalLots": 30,
             "availableLots": [
                 {
-                    "id": "198",
+                    "id": "LOT198",
+                    "label": "198",
                     "area": 600,
                     "frontage": 25.7
                 }, 
                 {
-                    "id": "204",
+                    "id": "LOT204",
+                    "label": "204",
                     "area": 300,
                     "frontage": 20.0
                 }, 
                 {
-                    "id": "205",
+                    "id": "LOT205",
+                    "label": "205",
                     "area": 300,
                     "frontage": 15.0
                 }, 
                 {
-                    "id": "185",
+                    "id": "LOT185",
+                    "label": "185",
                     "area": 300,
                     "frontage": 15.0
                 }, 
                 {
-                    "id": "184",
+                    "id": "LOT184",
+                    "label": "184",
                     "area": 300,
                     "frontage": 15.0
                 }
@@ -109,72 +122,86 @@
             "totalLots": 29,
             "availableLots": [
                 {
-                    "id": "206",
+                    "id": "LOT206",
+                    "label": "206",
                     "area": 300,
                     "frontage": 15.0
                 }, 
                 {
-                    "id": "207",
+                    "id": "LOT207",
+                    "label": "207",
                     "area": 300,
                     "frontage": 20.0
                 }, 
                 {
-                    "id": "228",
+                    "id": "LOT228",
+                    "label": "228",
                     "area": 350,
                     "frontage": 12.5
                 },
                 { 
-                    "id": "227",
+                    "id": "LOT227",
+                    "label": "227",
                     "area": 350,
                     "frontage": 12.5
                 }, 
                 {
-                    "id": "222",
+                    "id": "LOT222",
+                    "label": "222",
                     "area": 569,
                     "frontage": 18.6
                 }, 
                 {
-                    "id": "232",
+                    "id": "LOT232",
+                    "label": "232",
                     "area": 623,
                     "frontage": 12.5
                 }, 
                 {
-                    "id": "233",
+                    "id": "LOT233",
+                    "label": "233",
                     "area": 512,
                     "frontage": 16.0
                 }, 
                 {
-                    "id": "234",
+                    "id": "LOT234",
+                    "label": "234",
                     "area": 320,
                     "frontage": 10.0
                 }, 
                 {
-                    "id": "235",
+                    "id": "LOT235",
+                    "label": "235",
                     "area": 320,
                     "frontage": 10.0
                 }, 
                 {
-                    "id": "236",
+                    "id": "LOT236",
+                    "label": "236",
                     "area": 320,
                     "frontage": 10.0
                 }, 
                 {
-                    "id": "238",
+                    "id": "LOT238",
+                    "label": "238",
                     "area": 448,
                     "frontage": 14.0
                 }, 
                 {
-                    "id": "244",
+                    "id": "LOT244",
+                    "label": "244",
                     "area": 608,
                     "frontage": 19.0
                 }, 
                 {
-                    "id": "218",
+                    "id": "LOT218",
+                    "label": "218",
                     "area": 704,
                     "frontage": 22.0
                 }, 
                 {
-                    "id": "220",
+                    "id": "LOT220",
+                    "label": "220",
                     "area": 704,
                     "frontage": 22.0
                 }

@@ -18,30 +18,12 @@
         $container.empty();
         $container.addClass("landsales");
 
-        // variables that will hold the map and list wrappers once they
-        // are created by
+        // variables to hold wrappers and svg, once loaded
         var $mapWrapper;
         var $listWrapper;
+        var $svg;
 
-        /*
-        var $mapWrapper = $("<div />").attr(opts.mapWrapperAttrs);
-        var $listWrapper = $("<div>").attr(opts.listWrapperAttrs);
-        if (data.prev == undefined) {
-            $listWrapper.appendTo($container);
-            $mapWrapper.appendTo($container);
-
-            $listWrapper.removeClass("landsales-lot").addClass("landsales-stage");
-        }
-        else {
-            $mapWrapper.appendTo($container);
-            $listWrapper.appendTo($container);
-
-            $listWrapper.removeClass("landsales-stage").addClass("landsales-lot");
-        }
-        */
-
-        var $svg = null;
-
+        //#region utility methods
         function appendTimestampToQueryString(url)
         {
             var ts = (new Date().getTime());
@@ -54,7 +36,9 @@
 
             return url;
         }
+        //#endregion
 
+        //#region data loading
         function loadData()
         {
             var resources = [];
@@ -66,10 +50,14 @@
                     })
                 );
             }
+
+            // our handlebar templates
+            // we will load and compile them all upfront to avoid any delays later
             data.templates = {
                 "estateView": { url: "templates/estate-view.html" },
                 "stageView": { url: "templates/stage-view.html" },
-                "stageItem": { url: "templates/stage-item.html" }
+                "stageItem": { url: "templates/stage-item.html" },
+                "lotItem": { url: "templates/lot-item.html" }
             };
             var templates = [];
             $.each(data.templates, function(name, el) {
@@ -92,15 +80,17 @@
 
         function onDataLoaded()
         {
-            loadMap(data.estate);
+            //loadMap(data.estate);
 
             // uncomment the 2 lines below to test loading of first stage on startup
-            /*
+            
             data.crumbs.push(data.estate);
             loadMap(data.estate.stages[0]);
-            */
+            
         }
+        //#endregion
 
+        //#region data navigation
         function current() {
             var curr = undefined;
             
@@ -119,7 +109,9 @@
         function isLot() {
             return (!isEstate() && !isStage());
         }
+        //#endregion
 
+        //#region load estate/stage/lot
         function loadMap(map)
         {
             if (!map) {
@@ -127,6 +119,11 @@
                 data.crumbs.pop();  // pop current
                 map = current();    // set top as current
             } else {
+                if (!map.hasOwnProperty("plan")) {
+                    // doesn't have a plan yet, ignore navigation request
+                    console.log("Ignoring request to load " + map.id + " as it does not have a plan");
+                    return;
+                }
                 data.crumbs.push(map);
             }
             console.log("Changing to " + map.label + " [" + map.id + "]");
@@ -155,7 +152,9 @@
 
             $mapWrapper.load(appendTimestampToQueryString(map.plan), null, function (responseText, textStatus, req) {
                 if (textStatus == "error") {
+                    var errorThrown = "HTTP " + req.status + " " + req.statusText;
                     console.log("Failed to load " + map.plan + ": " + errorThrown);
+                    loadMap();  // couldn't load this one so return to previous map
                     opts.error.call(this, [responseText, textStatus, req]);
                 } else {
                     console.log("Loaded map for " + map.id + " from " + map.plan);
@@ -191,7 +190,7 @@
             // resize the wrapper divs
             $mapWrapper.width(width);
             $mapWrapper.height(height);
-            if (data.prev == undefined) {
+            if ( isEstate() ) {
                 $listWrapper.width(width-30);   // -30px to offset 15+15 margins of .fluid-container
             } else {
                 $listWrapper.height(height);
@@ -207,13 +206,13 @@
 
             // apply stage availability data to the map
             if ( isEstate() ) {
-                applyStageAvailability($view, current().stages);
+                applyStageAvailability($view);
             }
             else if ( isStage() ) {
-                // TODO: handle stage view
+                applyLotAvailability($view);
             }
             else {
-                // TODO: handle lot view
+                applyLotPackages($view);
             }
 
             // ok, everything is ready, now lets switch to the new view
@@ -224,45 +223,36 @@
 
             opts.loaded.call(this);
         }
+        //#endregion
 
-        function getStageAvailabilityTip(value) {
-            var availableLots = value.availableLots.length,
-                totalLots = value.totalLots;
-
-            var tip =
-                "<div class='stageplan-stagetip'>" + availableLots + " lots available.</div>";
-
-            return tip;
-        }
-
-        // mouse enter/leave event handlers to highlight lots on hover
+        //#region mouse enter/leave event handlers to highlight stages on hover
         function onStageMouseEnter(e)
         {
-            var $lot = $(e.target);
-            highlightLot($lot, true);
+            var $stage = $(e.target);
+            highlightItem($stage, true);
         }
         function onStageMouseLeave(e)
         {
-            var $lot = $(e.target);
-            highlightLot($lot, false);
+            var $stage = $(e.target);
+            highlightItem($stage, false);
         }
         function onStageButtonMouseEnter(e)
         {
             var $btn = $(e.target).closest(".card");
-            var $data = $btn.data("lotinfo");
-            var $lot = $("#"+$data.id);
-            highlightLot($lot, true);
+            var $data = $btn.data("landsales_data");
+            var $stage = $("#"+$data.id);
+            highlightItem($stage, true);
         }
         function onStageButtonMouseLeave(e)
         {
             var $btn = $(e.target).closest(".card");
-            var $data = $btn.data("lotinfo");
-            var $lot = $("#"+$data.id);
-            highlightLot($lot, false);
+            var $data = $btn.data("landsales_data");
+            var $stage = $("#"+$data.id);
+            highlightItem($stage, false);
         }
-        function highlightLot($lot, highlight)
+        function highlightItem($lot, highlight)
         {
-            var $data = $lot.data("lotinfo");
+            var $data = $lot.data("landsales_data");
             var $btn = $("#"+$data.id+"_CARD");
             if (highlight) {
                 $lot.css("fill-opacity", "1");
@@ -272,83 +262,177 @@
                 $btn.removeClass("highlight");
             }
         }
+        //#endregion
 
+        //#region mouse enter/leave event handlers to highlight lots on hover
+        function onLotMouseEnter(e)
+        {
+            var $lot = $(e.target);
+            highlightItem($lot, true);
+        }
+        function onLotMouseLeave(e)
+        {
+            var $lot = $(e.target);
+            highlightItem($lot, false);
+        }
+        function onLotButtonMouseEnter(e)
+        {
+            var $btn = $(e.target).closest(".card");
+            var $data = $btn.data("landsales_data");
+            var $lot = $("#"+$data.id);
+            highlightItem($lot, true);
+        }
+        function onLotButtonMouseLeave(e)
+        {
+            var $btn = $(e.target).closest(".card");
+            var $data = $btn.data("landsales_data");
+            var $lot = $("#"+$data.id);
+            highlightItem($lot, false);
+        }
+        //#endregion
+
+        //#region view instantiation
         function estateView(context)
         {
             var html = data.templates.estateView.template(context);
 
             return $(html);
         }
-
         function stageView(context)
         {
             var html = data.templates.stageView.template(context);
 
             return $(html);
         }
-
         function stageListItem(stage) {
-            var context = { "id": stage.id, "title": stage.label, "available": stage.availableLots.length };
+            var context = $.extend({}, stage, { "available": stage.availableLots.length });
             var html = data.templates.stageItem.template(context);
 
             return $(html);
         }
+        function lotListItem(lot) {
+            var context = $.extend({}, lot, {});
+            var html = data.templates.lotItem.template(context);
+
+            return $(html);
+        }
+        //#endregion
+
         
-        function applyStageAvailability($view, data) {
+        function applyStageAvailability($view) {
             // disable pointer events on all SVG elements to prevent interference with tooltips.
             // we will re-enable them on block shapes later.
             $svg.find("*").css("pointer-events", "none");
             
             $listWrapper.empty();
             $listRow = $("<div />").addClass("row").appendTo($listWrapper);
-            $.each(data, function (index, value) {
-                var location = value.id;
-                var $lot = $view.find("#"+location);
+
+            var estate = current();
+            $.each(estate.stages, function (index, stage) {
+                var location = stage.id;    // e.g. STAGE105
+                var $stage = $view.find("#"+location);
                 var $badge = $view.find("#"+location+"_BADGE");
                 
-                // re-enable pointer events for tooltip processing
-                $lot.css("pointer-events", "visible");
 
                 // if we have a rect defined for this code then update it
-                if ($lot.length == 1) {
+                if ($stage.length == 1) {
                     // attach the data for later reference
-                    $lot.data("lotinfo", value);
+                    $stage.data("landsales_data", stage);
 
-                    var availableLots = value.availableLots,
-                        totalLots = value.totalLots;
+                    var availableLots = stage.availableLots,
+                        totalLots = stage.totalLots;
                     
                     console.log(location + " has " + availableLots.length + " lots available");
                     
                     // make the lot mask transparent until the user hovers over the lot
-                    $lot.css("fill-opacity", "0");
+                    $stage.css("fill-opacity", "0");
                     
                     // update the available lot count on the badge
                     if ($badge.length == 1) {
                         $badge.find("text").text(availableLots.length);
                         
-                        // hide the badge if no availability
+                        // hide the badge if no availability?
                         /*
                         if (availableLots == 0) {
-                            $lot.css("display", "none");
+                            $stage.css("display", "none");
                             $badge.css("display", "none");
                         }
                         */
                     }
                     
                     // install mouse enter/leave handlers to highlight the stage on hover
-                    $lot.hover(onStageMouseEnter, onStageMouseLeave);
+                    $stage.css("pointer-events", "visible");
+                    $stage.hover(onStageMouseEnter, onStageMouseLeave);
 
                     // now add a new list item for the stage
-                    $listItem = stageListItem(value);
-                    $listItem.data("lotinfo", value);
+                    $listItem = stageListItem(stage);
+                    $listItem.data("landsales_data", stage);
                     $listRow.append($listItem);
                     $listItem.hover(onStageButtonMouseEnter, onStageButtonMouseLeave);
 
                     // add click handler to navigate to the stage view
-                    $lot.click(function () { loadMap(value); });
-                    $listItem.click(function () { loadMap(value); });
+                    $stage.click(function () { loadMap(stage); });
+                    $listItem.click(function () { loadMap(stage); });
                 }
             });
+        }
+
+        function applyLotAvailability($view) {
+            // disable pointer events on all SVG elements to prevent interference with tooltips.
+            // we will re-enable them on block shapes later.
+            $svg.find("*").css("pointer-events", "none");
+            
+            $listWrapper.empty();
+            $listRow = $("<div />").addClass("row").appendTo($listWrapper);
+
+            var stage = current();
+
+            // badges for all lots in the SVG are initially sold
+            
+            // for each available lots:
+            // 1. hide their badge (#LOTnnn_BADGE)
+            // 2. add mouseenter/leave handlers to toggle visibility of the lot mask (#LOTnnn)
+            $.each(stage.availableLots, function (index, lot) {
+                var location = lot.id;    // e.g LOT119
+                var $lot = $view.find("#"+location);
+                var $badge = $view.find("#"+location+"_BADGE");     // group with cover rect + status circle (fill=#000, opacity=0.5)
+                var $status = $view.find("#"+location+"_STATUS");   // status circle (fill=ref, opacity=1.0)
+                
+
+                // if we have a rect defined for this code then update it
+                if ($lot.length == 1) {
+                    // attach the data for later reference
+                    $lot.data("landsales_data", lot);
+                    
+                    console.log(location + " is available");
+                    
+                    // make the lot mask transparent until the user hovers over the lot
+                    $lot.css("fill-opacity", "0");
+
+                    // hide the badge as this lot is available
+                    $badge.css("display", "none");
+                    
+
+                    // now add a new list item for the stage
+                    $listItem = lotListItem(lot);
+                    $listItem.data("landsales_data", lot);
+                    $listRow.append($listItem);
+
+                    // add mouse enter/leave handlers to highlight the lot on hover
+                    $lot.css("pointer-events", "visible");
+                    $lot.hover(onLotMouseEnter, onLotMouseLeave);
+                    $listItem.hover(onLotButtonMouseEnter, onLotButtonMouseLeave);
+
+                    // add click handlers to navigate to the lot view
+                    // TODO
+                    $lot.click(function () { loadMap(lot); });
+                    $listItem.click(function () { loadMap(lot); });
+                }
+            });
+        }
+
+        function applyLotPackages($view) {
+            // TODO
         }
 
         loadData();
