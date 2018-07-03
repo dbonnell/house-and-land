@@ -86,7 +86,7 @@
             // this should ordinarily be "ESTATE" to start at the estate view.  for testing, set it to STAGE or LO,
             // to jump straight to the first stage or first lot of first stage, respectively
             var startAt = "ESTATE";
-            //var startAt = "LOT";
+            startAt = "LOT";
 
             if (startAt == "ESTATE") {
                 loadMap(data.estate);
@@ -247,7 +247,15 @@
             // ok, everything is ready, now lets switch to the new view
             $container.fadeOut(200, function() {
                 $container.empty().append($view);
-                $container.fadeIn(200);
+
+                // fade in the new container
+                $container.fadeTo(0, 0.1, function() {
+                    // zoom to current lot
+                    if ( isLot() ) {
+                        zoomCurrent();
+                    }
+                    $container.fadeTo(200, 1);
+                });
             });
 
             opts.loaded.call(this);
@@ -489,6 +497,67 @@
             });
         }
 
+        function initPanZoom() {
+            if ( !$(".panzoom").hasOwnProperty("panzoom") ) {
+                var opts = { onZoom: disablePanZoom };  // disable user controls after our initial pan/zoom
+                $(".panzoom").panzoom(opts);
+            }
+        }
+
+        function resetPanZoom() {
+            $(".panzoom").panzoom("resetZoom").panzoom("resetPan");
+        }
+
+        function disablePanZoom() {
+            $(".panzoom")
+                .panzoom("option", "disablePan", true)
+                .panzoom("option", "disableZoom", true)
+        }
+
+        function zoomTo($el, scale) {
+            scale = scale || 2.0;
+
+            initPanZoom();
+
+            var $pz = $el.closest(".panzoom");
+            var pz_rect = $pz.get(0).getBoundingClientRect();
+            var el_rect = $el.get(0).getBoundingClientRect();
+            var w = el_rect.width;
+            var h = el_rect.height;
+            var w2 = el_rect.width / 2;
+            var h2 = el_rect.height / 2;
+
+            // set focal point to the center of the lot
+            var focalPoint = { clientX: el_rect.x+w2, clientY: el_rect.y+h2 };
+
+            // if the lot is too close to one of the edges of the map
+            // then adjust the focal point to the lot edge closest the
+            // adjacent map edge
+            if (el_rect.left - pz_rect.left < w) {         // close to left edge => focus on lot's left edge
+                focalPoint.clientX = el_rect.left;
+            }
+            if (pz_rect.right - el_rect.right < w) {       // close to right edge => focus on lot's right edge
+                focalPoint.clientX = el_rect.right;
+            }
+            if (el_rect.top - pz_rect.top < h) {           // close to top edge => focus on lot's top edge
+                focalPoint.clientY = el_rect.top;
+            }
+            if (pz_rect.bottom - el_rect.bottom < h) {     // close to bottom edge => focus on lot's bottom edge
+                focalPoint.clientY = el_rect.bottom;
+            }
+
+            var opts = { focal: focalPoint, panOnlyWhenZoomed: true, duration: 2000 };
+
+            $pz.panzoom("zoom", scale, opts);
+        }
+
+        function zoomCurrent(scale) {
+            lot = current();
+            $lot = $svg.find("#"+lot.id);
+
+            zoomTo($lot, scale);
+        }
+
         function applyLotPackages($view) {
             // disable pointer events on all SVG elements to prevent interference with tooltips.
             // we will re-enable them on block shapes later.
@@ -526,6 +595,8 @@
                 $listRow = $("<div />").addClass("row").appendTo($listWrapper);
                 $listRow.append($detail);
             }
+
+            $mapWrapper.addClass("panzoom");
         }
 
         loadData();
