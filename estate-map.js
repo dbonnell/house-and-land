@@ -86,7 +86,7 @@
             // this should ordinarily be "ESTATE" to start at the estate view.  for testing, set it to STAGE or LO,
             // to jump straight to the first stage or first lot of first stage, respectively
             var startAt = "ESTATE";
-            startAt = "LOT";
+            //startAt = "LOT";
 
             if (startAt == "ESTATE") {
                 loadMap(data.estate);
