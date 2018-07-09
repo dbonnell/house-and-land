@@ -88,6 +88,7 @@
             var startAt = "ESTATE";
             //startAt = "LOT";
 
+
             if (startAt == "ESTATE") {
                 loadMap(data.estate);
             } else if (startAt == "STAGE") {
@@ -222,7 +223,8 @@
             if ( isEstate() ) {
                 $listWrapper.width(width-30);   // -30px to offset 15+15 margins of .fluid-container
             } else {
-                $listWrapper.height(height);
+                // Don't fix height when side-by-side, otherwise it will have a large gap when wrapped to be responsive
+                //$listWrapper.height(height);
             }
 
             // make the stage paths look clickable

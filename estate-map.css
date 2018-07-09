@@ -46,7 +46,11 @@
     margin-left: 4px;
 }
 .landsales-stage .landsales-list {
-    width: 500px;
+    width: 400px;
+}
+.landsales-nav-container {
+    margin-right: 8px;
+    width: 400px;
 }
 .landsales-nav, .stage-legend {
     margin-bottom: 8px;
@@ -69,10 +73,6 @@
 }
 .stage-legend .card-body {
     background-color: #e5e5e5;
-}
-.landsales-nav-container {
-    margin-right: 8px;
-    width: 500px;
 }
 .lot-item.card {
     margin-bottom: 4px;
