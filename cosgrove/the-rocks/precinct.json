@@ -4,9 +4,21 @@
     "title": "The Rocks Village",
     "blurb": "a private community nestled alongside natural bushland and wildlife corridors and framed by the stunning backdrop of Mount Louisa’s high rock formations. The first of seven villages in Cosgrove’s masterplan, The Rocks is perfect for families looking to balance a great lifestyle with connected living. Just 10 minutes from the CBD, you’ll love the convenience of parks, BBQ areas, a thriving community and transport networks, all within easy reach.",
     "plan": "cosgrove/the-rocks/precinct.svg",
-    "maxWidth": 835,
+    "maxWidth": 800,
     "maxStageWidth": 700,
     "maxLotWidth": 700,
+    "downloads": [
+        { 
+            "id": "COSGROVE_MASTERPLAN",
+            "title": "Cosgrove masterplan",
+            "url": "cosgrove/the-rocks/Cosgrove+Masterplan+A4+High-Res.pdf"
+        },
+        {
+            "id": "THE_ROCKS_PRECINCT_PLAN",
+            "title": "The Rocks precint plan",
+            "url": "cosgrove/the-rocks/Cosgrove+Precinct+Plan+A4+High-Res.pdf"
+        }
+    ],
     "stages": [
         { 
             "id": "STAGE105",
@@ -26,6 +38,12 @@
                     "label": "131",
                     "area": 429,
                     "frontage": 21.0
+                }
+            ],
+            "downloads": [
+                { 
+                    "title": "Stage 105 flyer",
+                    "url": "cosgrove/the-rocks/Cosgrove Stage Plans With Sold Labels 105 web.pdf"
                 }
             ]
         },

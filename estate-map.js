@@ -21,6 +21,7 @@
         // variables to hold wrappers and svg, once loaded
         var $mapWrapper;
         var $listWrapper;
+        var $downloadsWrapper;
         var $svg;
 
         //#region utility methods
@@ -59,7 +60,8 @@
                 "stageView": { url: "templates/stage-view.html" },
                 "lotItem": { url: "templates/lot-item.html" },
                 "lotView": { url: "templates/lot-view.html" },
-                "lotDetail": { url: "templates/lot-detail.html" }
+                "lotDetail": { url: "templates/lot-detail.html" },
+                "downloadItem": { url: "templates/download-item.html" }
             };
             var templates = [];
             $.each(data.templates, function(name, el) {
@@ -162,6 +164,7 @@
             //$container.empty().append($view);
             $mapWrapper = $view.find(".landsales-map");
             $listWrapper = $view.find(".landsales-list");
+            $downloadsWrapper = $view.find(".landsales-downloads");
 
             // attach click handler to "back" button (stage and lot views)
             if ( !isEstate() ) {
@@ -221,7 +224,15 @@
             $mapWrapper.width(width);
             $mapWrapper.height(height);
             if ( isEstate() ) {
-                $listWrapper.width(width-30);   // -30px to offset 15+15 margins of .fluid-container
+                // -30px to offset 15+15 margins of .fluid-container
+                //$listWrapper.width(width-30);
+                $listWrapper.width(width);
+                if ($downloadsWrapper.length > 0) {
+                    if ($downloadsWrapper.parent().hasClass("landsales-downloads-container")) {
+                        $downloadsWrapper.parent().width(width);
+                    }
+                    $downloadsWrapper.width(width);
+                }
             } else {
                 // Don't fix height when side-by-side, otherwise it will have a large gap when wrapped to be responsive
                 //$listWrapper.height(height);
@@ -301,6 +312,15 @@
                 $btn.removeClass("highlight");
             }
         }
+        function highlightDownload($download, highlight)
+        {
+            var $data = $download.data("landsales_data");
+            if (highlight) {
+                $download.addClass("highlight");
+            } else {
+                $download.removeClass("highlight");
+            }
+        }
         //#endregion
 
         //#region mouse enter/leave event handlers to highlight lots on hover
@@ -327,6 +347,20 @@
             var $data = $btn.data("landsales_data");
             var $lot = $("#"+$data.id);
             highlightItem($lot, false);
+        }
+        function onDownloadButtonMouseEnter(e)
+        {
+            var $btn = $(e.target).closest(".card");
+            var $data = $btn.data("landsales_data");
+            var $download = $("#"+$data.id);
+            highlightDownload($download, true);
+        }
+        function onDownloadButtonMouseLeave(e)
+        {
+            var $btn = $(e.target).closest(".card");
+            var $data = $btn.data("landsales_data");
+            var $download = $("#"+$data.id);
+            highlightDownload($download, false);
         }
         //#endregion
 
@@ -367,6 +401,12 @@
         function lotDetail(lot) {
             var context = $.extend({}, lot, {});
             var html = data.templates.lotDetail.template(context);
+
+            return $(html);
+        }
+        function downloadItem(download) {
+            var context = $.extend({}, download, {});
+            var html = data.templates.downloadItem.template(context);
 
             return $(html);
         }
@@ -428,6 +468,15 @@
                     $stage.click(function () { loadMap(stage); });
                     $listItem.click(function () { loadMap(stage); });
                 }
+            });
+
+            $downloadsWrapper.empty();
+            $downloadsRow = $("<div />").addClass("row").appendTo($downloadsWrapper);
+            $.each(estate.downloads, function (index, download) {
+                $downloadItem = downloadItem(download);
+                $downloadItem.data("landsales_data", download);
+                $downloadsRow.append($downloadItem);
+                $downloadItem.hover(onDownloadButtonMouseEnter, onDownloadButtonMouseLeave);
             });
         }
 

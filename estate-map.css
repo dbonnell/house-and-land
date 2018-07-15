@@ -1,10 +1,10 @@
-.landsales-list {
+.landsales-list, .landsales-downloads {
     margin: 0 !important;   /* override auto left/right from .container-fluid */
 }
-.landsales-list.row {
+.landsales-list.row, .landsales-downloads.row {
     padding: 10px;
 }
-.landsales-list .card {
+.landsales-list .card, .landsales-downloads .card {
     cursor: pointer;
     -webkit-transition: background-color .4s;
     transition: background-color .4s;
@@ -23,7 +23,7 @@
     padding: 5px;
     height: 40px;
 }
-.landsales-list .card-title {
+.landsales-list .card-title, .landsales-downloads .card-title {
     margin-bottom: 0;
 }
 .lot-detail.card {
@@ -47,6 +47,44 @@
 }
 .landsales-stage .landsales-list {
     width: 400px;
+}
+.download-item.card {
+    max-width: 48%;
+}
+.landsales-downloads-container {
+    margin-top: 12px;
+    padding: 8px; 
+    background-color: #ffd400;
+}
+.download-item.card {
+    background-color: black;
+}
+.download-item.card .cloud-download {
+    fill: white;
+    padding-right: 4px;
+}
+.download-item.card a {
+    color: white;
+    display: inline-block;
+    vertical-align: top;
+    padding-left: 6px;
+}
+.download-item.card a:hover {
+    text-decoration: none;
+}
+.download-item.card.highlight a {
+    color: #ffd400;
+    -webkit-transition: color .4s;
+    transition: color .4s;
+}
+.download-item.card.highlight .cloud-download {
+    fill: #ffd400;
+    -webkit-transition: fill .4s;
+    transition: fill .4s;
+}
+.download-item .card-body, .lot-item .card-body {
+    padding: 5px;
+    height: 40px;
 }
 .landsales-nav-container {
     margin-right: 8px;
