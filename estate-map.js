@@ -478,6 +478,12 @@
                 $downloadsRow.append($downloadItem);
                 $downloadItem.hover(onDownloadButtonMouseEnter, onDownloadButtonMouseLeave);
             });
+            $(document).on("click", "a.landsales-file-download", function () {
+                $.fileDownload($(this).prop('href'))
+                    .done(function () { alert('File downloaded  successfully'); })
+                    .fail(function () { alert('File download failed, please try again.'); });
+                return false; //this is critical to stop the click event which will trigger a normal file download!
+            });
         }
 
         function hideAllLots() {
