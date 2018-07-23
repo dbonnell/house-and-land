@@ -47,6 +47,7 @@
 }
 .landsales-stage .landsales-list {
     width: 400px;
+    overflow-x: hidden;
 }
 .download-item.card {
     max-width: 48%;
@@ -55,6 +56,7 @@
     margin-top: 12px;
     padding: 8px; 
     background-color: #ffd400;
+    overflow-x: hidden;
 }
 .download-item.card {
     background-color: black;

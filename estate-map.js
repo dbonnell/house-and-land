@@ -1,3 +1,31 @@
+(function($, sr){
+
+    // debouncing function from John Hann
+    // http://unscriptable.com/index.php/2009/03/20/debouncing-javascript-methods/
+    var debounce = function (func, threshold, execAsap) {
+        var timeout;
+  
+        return function debounced () {
+            var obj = this, args = arguments;
+            function delayed () {
+                if (!execAsap)
+                    func.apply(obj, args);
+                timeout = null;
+            };
+  
+            if (timeout)
+                clearTimeout(timeout);
+            else if (execAsap)
+                func.apply(obj, args);
+  
+            timeout = setTimeout(delayed, threshold || 100);
+        };
+    }
+    // smartresize 
+    jQuery.fn[sr] = function(fn){  return fn ? this.bind('resize', debounce(fn)) : this.trigger(sr); };
+  
+})(jQuery, 'smartresize');
+
 (function ( $ ) {
   
     // plugin definition
@@ -23,6 +51,12 @@
         var $listWrapper;
         var $downloadsWrapper;
         var $svg;
+        var svgWidth, svgHeight;     // original dimensions of the SVG
+
+        // respond to window resize
+        $(window).smartresize(function() {
+            resizeToWindow();
+        });
 
         //#region utility methods
         function appendTimestampToQueryString(url)
@@ -185,58 +219,93 @@
             });
         }
 
+        function resizeToWindow()
+        {
+            if ($mapWrapper !== undefined) {
+                // grab the SVG document
+                $svg = $mapWrapper.find("svg");
+
+                var windowWidth = $(window).width();
+                var windowHeight = $(window).height();
+                console.log("window="+windowWidth+"x"+windowHeight);
+
+                // enforce maximum width
+                if (svgWidth === undefined) {
+                    svgWidth = $svg.attr("width");
+                    svgHeight = $svg.attr("height");
+                }
+                var width = svgWidth, height = svgHeight;
+                
+                if (width.indexOf("mm") >= 0) {
+                    console.log("OOPS!  SVG width/height are in mm.  Please set Document Properties/Custom Size units to px");
+                }
+                var maxWidth = current().maxWidth;
+                if (maxWidth == undefined) {
+                    if (isLot()) {
+                        maxWidth = data.estate.maxLotWidth;
+                    } else if (isStage()) {
+                        maxWidth = data.estate.maxStageWidth;
+                    }
+                    else {
+                        maxWidth = data.estate.maxWidth;
+                    }
+                }
+
+                // if maxWidth > windowWidth then use windowWidh (unless it is less then minWidth)
+                var minWidth = 625;
+                if (maxWidth >= windowWidth) {
+                    maxWidth = windowWidth - 8;
+                } else if (windowWidth >= width && windowWidth <= maxWidth) {
+                    maxWidth = windowWidth - 8;
+                }
+                if (maxWidth <= minWidth) {
+                    maxWidth = minWidth;
+                }
+
+                if (maxWidth != undefined && maxWidth > 0) {
+                    // preserve aspect ratio on resize
+                    if ($svg.attr("preserveAspectRatio") == undefined) {
+                        $svg.attr("preserveAspectRatio", "xMinYMin meet");
+                    }
+                    var scale = maxWidth / width;
+                    width = Math.floor(width * scale);
+                    height = Math.floor(height * scale);
+                }
+
+                // resize the SVG
+                $svg.attr("width", width);
+                $svg.attr("height", height);
+
+                // resize the wrapper divs
+                console.log("Changing map wrapper to "+width+"x"+height);
+                $mapWrapper.outerWidth(width);
+                $mapWrapper.outerHeight(height);
+
+                if ( isEstate() ) {
+                    // -30px to offset 15+15 margins of .fluid-container
+                    //$listWrapper.width(width-30);
+                    $listWrapper.removeAttr("width");
+                    $listWrapper.outerWidth(width);
+                    console.log("Changing list wrapper width to "+width);
+                    if ($downloadsWrapper.length > 0) {
+                        if ($downloadsWrapper.parent().hasClass("landsales-downloads-container")) {
+                            console.log("Changing download wrapper parent width to "+width);
+                            $downloadsWrapper.parent().outerWidth(width);
+                        }
+                        console.log("Changing download wrapper width to "+width);
+                        $downloadsWrapper.outerWidth(width);
+                    }
+                } else {
+                    // Don't fix height when side-by-side, otherwise it will have a large gap when wrapped to be responsive
+                    //$listWrapper.height(height);
+                }
+            }
+        }
+
         function onMapLoaded($view)
         {
             // grab the SVG document
             $svg = $mapWrapper.find("svg");
-
-            // enforce maximum width
-            var width = $svg.attr("width");
-            var height = $svg.attr("height");
-            if (width.indexOf("mm") >= 0) {
-                console.log("OOPS!  SVG width/height are in mm.  Please set Document Properties/Custom Size units to px");
-            }
-            var maxWidth = current().maxWidth;
-            if (maxWidth == undefined) {
-                if (isLot()) {
-                    maxWidth = data.estate.maxLotWidth;
-                } else if (isStage()) {
-                    maxWidth = data.estate.maxStageWidth;
-                }
-                else {
-                    maxWidth = data.estate.maxWidth;
-                }
-            }
-
-            if (maxWidth != undefined && maxWidth > 0 && width > maxWidth) {
-                // preserve aspect ratio on resize
-                if ($svg.attr("preserveAspectRatio") == undefined) {
-                    $svg.attr("preserveAspectRatio", "xMinYMin meet");
-                }
-                var scale = maxWidth / width;
-                width = Math.floor(width * scale);
-                height = Math.floor(height * scale);
-                $svg.attr("width", width);
-                $svg.attr("height", height);
-            }
-
-            // resize the wrapper divs
-            $mapWrapper.width(width);
-            $mapWrapper.height(height);
-            if ( isEstate() ) {
-                // -30px to offset 15+15 margins of .fluid-container
-                //$listWrapper.width(width-30);
-                $listWrapper.width(width);
-                if ($downloadsWrapper.length > 0) {
-                    if ($downloadsWrapper.parent().hasClass("landsales-downloads-container")) {
-                        $downloadsWrapper.parent().width(width);
-                    }
-                    $downloadsWrapper.width(width);
-                }
-            } else {
-                // Don't fix height when side-by-side, otherwise it will have a large gap when wrapped to be responsive
-                //$listWrapper.height(height);
-            }
 
             // make the stage paths look clickable
             var $paths = $svg.find("path");
@@ -263,6 +332,9 @@
 
                 // fade in the new container
                 $container.fadeTo(0, 0.1, function() {
+                    // IMPORTANT: Don't do the initial resize until the container is just visible, otherwise you'll get scrollbars on initial load
+                    resizeToWindow();
+
                     // zoom to current lot
                     if ( isLot() ) {
                         zoomCurrent();
